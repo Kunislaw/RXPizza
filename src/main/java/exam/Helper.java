@@ -1,19 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package exam;
 
-
-import com.sun.jndi.url.iiopname.iiopnameURLContextFactory;
 import io.reactivex.Observable;
-
-import static java.awt.PageAttributes.MediaType.A;
-
 import java.util.*;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
+
 
 /**
  *
@@ -78,16 +67,14 @@ public class Helper {
 	 */
 	public Map<String, Set<Ingredient>> groupByIngredients(List<Pizza> pizzas) {
 
-		Observable.fromIterable(pizzas)
-				.flatMap(pizza -> Observable.fromIterable(pizza.getIngredients()))
-				.distinct()
-				.groupBy(i->i.isMeat() && i.isSpicy() ?"SPICY_MEAT": i.isMeat()?"MEAT": i.isSpicy()?"SPICY": "OTHER")
-
-		;
-
-		return pizzas.stream()
-				.flatMap(pizza -> pizza.getIngredients().stream())
-				.distinct()
-				.collect(Collectors.groupingBy(i->i.isMeat() && i.isSpicy() ?"SPICY_MEAT": i.isMeat()?"MEAT": i.isSpicy()?"SPICY": "OTHER",Collectors.toSet()));
-	}
+        return Observable.fromIterable(Observable.fromIterable(pizzas)
+                .flatMap(pizza -> Observable.fromIterable(pizza.getIngredients()))
+                .distinct()
+                .groupBy(i -> i.isMeat() && i.isSpicy() ? "SPICY_MEAT" : i.isMeat() ? "MEAT" : i.isSpicy() ? "SPICY" : "OTHER")
+                .blockingIterable())
+                .toMap(f -> f.getKey(), h-> {
+                	Set<Ingredient> set = new HashSet<>(h.toList().blockingGet());
+                	return set;
+				}).blockingGet();
+    }
 }
